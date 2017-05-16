@@ -49,6 +49,7 @@ var AudioCardName = "Audio card";
 var EmojiChoicePrompt = "Emoji Choice Prompt";
 var SpanishLanguagePrompt = "Spanish Choice Prompt";
 var SuggestedActionsMessage = "Suggested Actions Message";
+var AdaptiveCardDemo = "Adaptive Card Demo";
 
 var CardNames = [
     HeroCardName,
@@ -60,7 +61,8 @@ var CardNames = [
     AudioCardName,
     EmojiChoicePrompt,
     SpanishLanguagePrompt,
-    SuggestedActionsMessage
+    SuggestedActionsMessage,
+    AdaptiveCardDemo
 ];
 
 var bot = new builder.UniversalBot(connector, [
@@ -82,7 +84,10 @@ var bot = new builder.UniversalBot(connector, [
             session.beginDialog('spanish_choice_prompt');
         } else if (selectedCardName === SuggestedActionsMessage) {
             session.beginDialog('suggested_actions');
-        } else {
+        } else if (selectedCardName === AdaptiveCardDemo) {
+            session.beginDialog('adaptive_card_demo');
+        } 
+        else {
             var card = createCard(selectedCardName, session);
 
             // attach the card to the reply message
@@ -309,11 +314,14 @@ bot.dialog('suggested_actions_reponse_handler', function (session) {
     session.send('You picked a color...');
 }).triggerAction(/productId=1&color/i);
 
+var emojiChoices01 = ['Low 😊', 'Moderate 😐', 'High 😣'];
+var emojiFoodChoices = ['&#x1F355', '&#x1F32E', '&#x1F371'];
+var asianFoodChoices = ['🍱', '🍣', '🍤'];
+
+
 bot.dialog('emoji_choice_prompt', [
     function (session) {
-        builder
-            .Prompts
-            .choice(session, "Select an emoji response:", ['Low 😊', 'Moderate 😐', 'High 😣']);
+        builder.Prompts.choice(session, "Select an emoji response:", asianFoodChoices, {listStyle: builder.ListStyle.button});
     },
     function (session, results) {
         console.log('\n');
@@ -339,6 +347,82 @@ bot.dialog('spanish_choice_prompt', [
         session.endDialog();
     }
 ]);
+
+// adaptive cards example from:
+// https://docs.microsoft.com/en-us/bot-framework/nodejs/bot-builder-nodejs-send-rich-cards
+bot.dialog('adaptive_card_demo', function(session) {
+    var adaptiveCardMessage = new builder.Message(session)
+    .addAttachment({
+        contentType: "application/vnd.microsoft.card.adaptive",
+        content: {
+            type: "AdaptiveCard",
+            speak: "<s>Your  meeting about \"Adaptive Card design session\"<break strength='weak'/> is starting at 12:30pm</s><s>Do you want to snooze <break strength='weak'/> or do you want to send a late notification to the attendees?</s>",
+               body: [
+                    {
+                        "type": "TextBlock",
+                        "text": "Adaptive Card design session",
+                        "size": "large",
+                        "weight": "bolder"
+                    },
+                    {
+                        "type": "TextBlock",
+                        "text": "Conf Room 112/3377 (10)"
+                    },
+                    {
+                        "type": "TextBlock",
+                        "text": "12:30 PM - 1:30 PM"
+                    },
+                    {
+                        "type": "TextBlock",
+                        "text": "Snooze for"
+                    },
+                    {
+                        "type": "Input.ChoiceSet",
+                        "id": "snooze",
+                        "style":"compact",
+                        "choices": [
+                            {
+                                "title": "5 minutes",
+                                "value": "5",
+                                "isSelected": true
+                            },
+                            {
+                                "title": "15 minutes",
+                                "value": "15"
+                            },
+                            {
+                                "title": "30 minutes",
+                                "value": "30"
+                            }
+                        ]
+                    }
+                ],
+                "actions": [
+                    {
+                        "type": "Action.Http",
+                        "method": "POST",
+                        "url": "http://foo.com",
+                        "title": "Snooze"
+                    },
+                    {
+                        "type": "Action.Http",
+                        "method": "POST",
+                        "url": "http://foo.com",
+                        "title": "I'll be late"
+                    },
+                    {
+                        "type": "Action.Http",
+                        "method": "POST",
+                        "url": "http://foo.com",
+                        "title": "Dismiss"
+                    }
+                ]
+        }
+    });
+
+    session.send(adaptiveCardMessage);
+    session.endDialog();
+});
 
 bot.dialog('exit', function (session) {
     session.endConversation('Goodbye!');
