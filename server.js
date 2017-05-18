@@ -50,6 +50,7 @@ var EmojiChoicePrompt = "Emoji Choice Prompt";
 var SpanishLanguagePrompt = "Spanish Choice Prompt";
 var SuggestedActionsMessage = "Suggested Actions Message";
 var AdaptiveCardDemo = "Adaptive Card Demo";
+var MessageWithTable = "Table Example";
 
 var CardNames = [
     HeroCardName,
@@ -62,7 +63,8 @@ var CardNames = [
     EmojiChoicePrompt,
     SpanishLanguagePrompt,
     SuggestedActionsMessage,
-    AdaptiveCardDemo
+    AdaptiveCardDemo,
+    MessageWithTable
 ];
 
 var bot = new builder.UniversalBot(connector, [
@@ -86,7 +88,9 @@ var bot = new builder.UniversalBot(connector, [
             session.beginDialog('suggested_actions');
         } else if (selectedCardName === AdaptiveCardDemo) {
             session.beginDialog('adaptive_card_demo');
-        } 
+        } else if (selectedCardName === MessageWithTable) {
+            session.beginDialog('message_with_table');
+        }
         else {
             var card = createCard(selectedCardName, session);
 
@@ -422,6 +426,16 @@ bot.dialog('adaptive_card_demo', function(session) {
 
     session.send(adaptiveCardMessage);
     session.endDialog();
+});
+
+bot.dialog('message_with_table', function (session) {
+    var tableHTML = '<table style="padding:10px;border:1px solid black;"><tr style="background-color:#c6c6c6"><th>Countries</th><th>Capitals</th><th>Population</th><th>Language</th></tr><tr><td>USA</td><td>Washington D.C.</td><td>309 million</td><td>English</td></tr><tr><td>Sweden</td><td>Stockholm</td><td>9 million</td><td>Swedish</td></tr></table>';
+    var message = {
+        type: 'message',
+        textFormat: 'xml', 
+        text: tableHTML
+    };
+    session.send(message);
 });
 
 bot.dialog('exit', function (session) {
